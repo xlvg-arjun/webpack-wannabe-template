@@ -11,7 +11,7 @@ const Merge = require('webpack-merge');
 const { join } = require('path');
 
 const commonConfig = {
-  entry: './src/app.ts',
+  entry: ['./src/app.ts'],
   output: {
     path: join(__dirname, 'dist'),
     filename: './build.js'
@@ -72,7 +72,10 @@ const devConfig = {
     contentBase: join(__dirname, "dist"),
     compress: true,
     port: 8080,
-  }
+  },
+  entry: [
+    "webpack-dev-server/client?http://localhost:8080/"
+  ]
 };
 
 const prodConfig = {
