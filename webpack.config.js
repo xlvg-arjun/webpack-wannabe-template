@@ -21,7 +21,7 @@ const commonConfig = {
     filename: '[name].bundle.js'
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.json', '.html'],
+    extensions: ['.js', '.jsx', '.json', '.vue', '.html'],
   },
   node: {
     fs: 'empty',
@@ -32,6 +32,17 @@ const commonConfig = {
       { 
         test: /\.((js)|(jsx))$/, 
         use: ['babel-loader'] 
+      },
+
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader',
+        options: {
+          extractCSS: true,
+          loaders: {
+            css: ['style-loader', 'css-loader', 'stylus-loader']
+          }
+        }
       },
 
       {
@@ -116,6 +127,17 @@ const prodConfig = {
           use: ['css-loader']
         })
       },
+      
+      {
+        test: /\.((html)|(js))$/,
+        enforce: 'pre',
+        exclude: /(node_modules|bower_components|\.spec\.js)/,
+        use: [
+          {
+            loader: 'webpack-strip-block'
+          }
+        ]
+      }
     ],
   },
   
