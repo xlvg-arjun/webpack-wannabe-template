@@ -14,14 +14,14 @@ const { join } = require('path');
 
 const commonConfig = {
   entry: {
-    build: ['./src/app.ts'],
+    build: ['./src/app.js'],
   },
   output: {
     path: join(__dirname, 'dist'),
     filename: '[name].bundle.js'
   },
   resolve: {
-    extensions: ['.js', '.json', '.ts', '.tsx', '.html'],
+    extensions: ['.js', '.jsx', '.json', '.html'],
   },
   node: {
     fs: 'empty',
@@ -68,7 +68,7 @@ const commonConfig = {
 };
 
 const devConfig = {
-  devtool: 'inline-source-map',
+  devtool: 'eval',
   module: {
     rules: [
       { 
@@ -96,7 +96,7 @@ const devConfig = {
 };
 
 const prodConfig = {
-  devtool: 'source-map',
+  devtool: 'eval-source-map',
   module: {
     rules: [
       { 
@@ -147,7 +147,13 @@ const prodConfig = {
       drop_console: true,
       screw_ie8: true
     },
-   })
+   }),
+
+  new webpack.DefinePlugin({
+      'process.env.NODE_ENV': '"production"'
+    }),
+  
+  new webpack.optimize.AggressiveMergingPlugin()
   ]
 };
 
