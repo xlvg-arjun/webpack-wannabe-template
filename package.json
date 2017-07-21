@@ -4,12 +4,16 @@
   "description": "A working quick to run webpack boilerplate with Stylus and Typescript, with React support. Also includes webpack-dev-server and handles html files decently.",
   "main": "index.js",
   "author": "Arjun Raju Pillai <revarjunr@gmail.com>",
-  
   "scripts": {
     "start": "NODE_ENV=development nodemon --watch webpack.config.js --exec 'webpack-dev-server'",
     "build": "NODE_ENV=production webpack -p"
   },
   "devDependencies": {
+    "autoprefixer-stylus": "^0.14.0",
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.4",
     "extract-loader": "^0.1.0",
     "extract-text-webpack-plugin": "beta",
@@ -20,12 +24,9 @@
     "style-loader": "^0.18.2",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1",
-    "ts-loader": "^2.2.2",
-    "typescript": "^2.4.1",
-    "webpack": "^3.1.0",
+    "webpack": "^3.3.0",
     "webpack-dev-server": "^2.5.1",
     "webpack-merge": "^4.1.0"
   },
-  
   "license": "MIT"
 }

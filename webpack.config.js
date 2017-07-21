@@ -4,6 +4,8 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
+const stylusAutoprefixer = require('autoprefixer-stylus');
+
 const webpack = require('webpack');
 
 const Merge = require('webpack-merge');
@@ -11,31 +13,25 @@ const Merge = require('webpack-merge');
 const { join } = require('path');
 
 const commonConfig = {
-  entry: ['./src/app.ts'],
+  entry: {
+    build: ['./src/app.ts'],
+  },
   output: {
     path: join(__dirname, 'dist'),
-    filename: './build.js'
+    filename: '[name].bundle.js'
   },
   resolve: {
-    extensions: ['.js', '.json', '.ts', '.tsx', '.html']
+    extensions: ['.js', '.json', '.ts', '.tsx', '.html'],
   },
   node: {
     fs: 'empty',
   },
   module: {
     rules: [
-      { 
-        test: /\.styl$/, 
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-
-          use: ['css-loader', 'stylus-loader']
-        })
-      },
 
       { 
-        test: /\.((ts)|(tsx))$/, 
-        use: ['ts-loader'] 
+        test: /\.((js)|(jsx))$/, 
+        use: ['babel-loader'] 
       },
 
       {
@@ -63,28 +59,85 @@ const commonConfig = {
       }
     ]
   },
-  plugins: [new ExtractTextPlugin('style.css')]
+  plugins: [
+
+    new webpack.optimize.CommonsChunkPlugin({
+        name: 'vendor'
+      })
+    ]
 };
 
 const devConfig = {
-  devtool: 'cheap-eval-source-map',
-  devServer: {
-    contentBase: join(__dirname, "dist"),
-    compress: true,
-    port: 8080,
+  devtool: 'inline-source-map',
+  module: {
+    rules: [
+      { 
+        test: /\.styl$/, 
+        use: ['style-loader', 'css-loader', 'stylus-loader'],
+      },
+
+      { 
+        test: /\.css$/, 
+        use: ['style-loader', 'css-loader'],
+      },
+    ]
   },
-  entry: [
-    "webpack-dev-server/client?http://localhost:8080/"
-  ]
+
+  devServer: {
+      contentBase: join(__dirname, "dist"),
+      compress: true,
+      port: 8080,
+      historyApiFallback: true
+    },
+
+    entry: {
+      server: "webpack-dev-server/client?http://localhost:8080/"
+    }
 };
 
 const prodConfig = {
   devtool: 'source-map',
+  module: {
+    rules: [
+      { 
+        test: /\.styl$/, 
+        use: ExtractTextPlugin.extract({
+          fallback: {loader: 'style-loader'},
+
+          use: ['css-loader', 'stylus-loader']
+        })
+      },
+
+      { 
+        test: /\.css$/, 
+        use: ExtractTextPlugin.extract({
+          fallback: {loader: 'style-loader'},
+
+          use: ['css-loader']
+        })
+      },
+    ],
+  },
+  
   plugins: [
   //   new UglifyJSPlugin({
   //   extractComments: true,
   //   sourceMap: true
   // })
+
+  new webpack.LoaderOptionsPlugin({
+    test: /\.styl$/,
+    stylus: {
+      // You can have multiple stylus configs with other names and use them
+      // with `stylus-loader?config=otherConfig`.
+      default: {
+        use: [stylusAutoprefixer({ browsers: ['last 3 versions']})],
+      },
+    },
+  }),
+
+  new ExtractTextPlugin('style.css'),
+
   new webpack.optimize.UglifyJsPlugin({ 
     sourceMap: true,
     beautify: false,
@@ -97,5 +150,6 @@ const prodConfig = {
    })
   ]
 };
+
 
 module.exports = (process.env.NODE_ENV === 'development' ? Merge(commonConfig, devConfig) : Merge(commonConfig, prodConfig)); 
