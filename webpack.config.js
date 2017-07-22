@@ -29,9 +29,12 @@ const commonConfig = {
   module: {
     rules: [
 
-      { 
-        test: /\.((js)|(jsx))$/, 
-        use: ['babel-loader'] 
+      {
+        test: /\.((js)|(jsx))$/,
+        exclude: [
+          join(__dirname, 'node_modules'),
+        ],
+        use: ['babel-loader']
       },
 
       {
@@ -48,86 +51,95 @@ const commonConfig = {
       {
         test: /\.html$/,
         use: [
-              {
-                loader: "file-loader",
-                options: {
-                  name: "[name].html",
-                },
-              },
-            
-              {
-                loader: "extract-loader",
-              },
-
-              {
-                loader: "html-loader",
-                options: {
-                  // attrs: ["img:src", "link:href"],
-                  // interpolate: true,
-                },
+          {
+            loader: "file-loader",
+            options: {
+              name: "[name].html",
             },
-          ],
-      }
+          },
+
+          {
+            loader: "extract-loader",
+          },
+
+          {
+            loader: "html-loader",
+            options: {
+              // attrs: ["img:src", "link:href"],
+              // interpolate: true,
+            },
+          },
+        ],
+      },
+
+
     ]
   },
   plugins: [
 
     new webpack.optimize.CommonsChunkPlugin({
-        name: 'vendor'
-      })
-    ]
+      name: 'vendor'
+    })
+  ]
 };
 
 const devConfig = {
   devtool: 'eval',
   module: {
     rules: [
-      { 
-        test: /\.styl$/, 
+      {
+        test: /\.styl$/,
         use: ['style-loader', 'css-loader', 'stylus-loader'],
       },
 
-      { 
-        test: /\.css$/, 
+      {
+        test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
+
+      {
+        test: /\.(gif|png|jpe?g|svg)$/i,
+        loaders: [
+          'file-loader',
+        ]
+      }
     ]
   },
 
   devServer: {
-      contentBase: join(__dirname, "dist"),
-      compress: true,
-      port: 8080,
-      historyApiFallback: true
-    },
+    contentBase: join(__dirname, "dist"),
+    compress: true,
+    port: 8080,
+    historyApiFallback: true
+  },
 
-    entry: {
-      server: "webpack-dev-server/client?http://localhost:8080/"
-    }
+  entry: {
+    server: "webpack-dev-server/client?http://localhost:8080/"
+  }
 };
 
 const prodConfig = {
   devtool: 'eval-source-map',
   module: {
     rules: [
-      { 
-        test: /\.styl$/, 
+      {
+        test: /\.styl$/,
         use: ExtractTextPlugin.extract({
-          fallback: {loader: 'style-loader'},
+          fallback: { loader: 'style-loader' },
 
           use: ['css-loader', 'stylus-loader']
         })
       },
 
-      { 
-        test: /\.css$/, 
+      {
+        test: /\.css$/,
         use: ExtractTextPlugin.extract({
-          fallback: {loader: 'style-loader'},
+          fallback: { loader: 'style-loader' },
 
           use: ['css-loader']
         })
       },
-      
+
       {
         test: /\.((html)|(js))$/,
         enforce: 'pre',
@@ -137,45 +149,64 @@ const prodConfig = {
             loader: 'webpack-strip-block'
           }
         ]
+      },
+
+      {
+        test: /\.(gif|png|jpe?g|svg)$/i,
+        loaders: [
+          'file-loader',
+          {
+            loader: 'image-webpack-loader',
+            query: {
+              progressive: true,
+              optimizationLevel: 7,
+              interlaced: false,
+              pngquant: {
+                quality: '65-90',
+                speed: 4
+              }
+            }
+          }
+        ]
       }
     ],
   },
-  
+
   plugins: [
-  //   new UglifyJSPlugin({
-  //   extractComments: true,
-  //   sourceMap: true
-  // })
+    //   new UglifyJSPlugin({
+    //   extractComments: true,
+    //   sourceMap: true
+    // })
 
-  new webpack.LoaderOptionsPlugin({
-    test: /\.styl$/,
-    stylus: {
-      // You can have multiple stylus configs with other names and use them
-      // with `stylus-loader?config=otherConfig`.
-      default: {
-        use: [stylusAutoprefixer({ browsers: ['last 3 versions']})],
+    new webpack.LoaderOptionsPlugin({
+      test: /\.styl$/,
+      stylus: {
+        // You can have multiple stylus configs with other names and use them
+        // with `stylus-loader?config=otherConfig`.
+        default: {
+          use: [stylusAutoprefixer({ browsers: ['last 3 versions'] })],
+        },
       },
-    },
-  }),
+    }),
 
-  new ExtractTextPlugin('style.css'),
+    new ExtractTextPlugin('style.css'),
 
-  new webpack.optimize.UglifyJsPlugin({ 
-    sourceMap: true,
-    beautify: false,
-    comments: false,
-    compress: {
-      warnings: false,
-      drop_console: true,
-      screw_ie8: true
-    },
-   }),
+    new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
+      beautify: false,
+      comments: false,
+      compress: {
+        warnings: false,
+        drop_console: true,
+        screw_ie8: true
+      },
+    }),
 
-  new webpack.DefinePlugin({
+    new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-  
-  new webpack.optimize.AggressiveMergingPlugin()
+
+    new webpack.optimize.AggressiveMergingPlugin()
   ]
 };
 
