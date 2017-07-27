@@ -6,31 +6,42 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 const stylusAutoprefixer = require('autoprefixer-stylus');
 
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
+
+const extractStyles = process.env.NODE_ENV !== 'development';
+
 const webpack = require('webpack');
 
 const Merge = require('webpack-merge');
 
 const { join } = require('path');
 
+
 const commonConfig = {
   entry: {
-    build: ['./src/app.js'],
+    index: ['./src/app.js'],
   },
   output: {
     path: join(__dirname, 'dist'),
-    filename: '[name].bundle.js'
+    filename: '[name].bundle.js',
+    chunkFilename: '[name].bundle.js'
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.json', '.vue', '.html'],
+    extensions: ['.js', '.json', '.vue', '.html', '.styl'],
+    alias: {
+      'vue$': 'vue/dist/vue.esm.js',
+      // inherits$: join(__dirname, 'node_modules/inherits')
+    }
   },
   node: {
     fs: 'empty',
+    // child_process: 'empty',
   },
   module: {
     rules: [
 
       {
-        test: /\.((js)|(jsx))$/,
+        test: /\.js$/,
         exclude: [
           join(__dirname, 'node_modules'),
         ],
@@ -41,7 +52,7 @@ const commonConfig = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
-          extractCSS: true,
+          extractStyles,
           loaders: {
             css: ['style-loader', 'css-loader', 'stylus-loader']
           }
@@ -72,19 +83,55 @@ const commonConfig = {
         ],
       },
 
+      {
+        test: /\.(gif|png|jpe?g|svg)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: 'images/[name].[ext]',
+            },
+          },
+          {
+            loader: 'image-webpack-loader',
+            query: {
+              progressive: true,
+              optimizationLevel: 12,
+              interlaced: false,
+              pngquant: {
+                quality: '65-70',
+                speed: 4
+              }
+            }
+          }
+        ]
+      },
+
+      {
+        test: /\.(ttf|eot|woff|woff2|otf)$/,
+        loader: 'file-loader',
+        options: {
+          name: 'fonts/[name].[ext]',
+        },
+      },
+
 
     ]
   },
   plugins: [
 
+    new ExtractTextPlugin('style.css'),
+
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor'
-    })
+    }),
+
+    new FriendlyErrorsPlugin()
   ]
 };
 
 const devConfig = {
-  devtool: 'eval',
+  devtool: 'eval-source-map',
   module: {
     rules: [
       {
@@ -96,18 +143,12 @@ const devConfig = {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
-
-      {
-        test: /\.(gif|png|jpe?g|svg)$/i,
-        loaders: [
-          'file-loader',
-        ]
-      }
     ]
   },
 
   devServer: {
     contentBase: join(__dirname, "dist"),
+    // publicPath: '/',
     compress: true,
     port: 8080,
     historyApiFallback: true
@@ -115,11 +156,19 @@ const devConfig = {
 
   entry: {
     server: "webpack-dev-server/client?http://localhost:8080/"
-  }
+  },
+
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('development')
+      }
+    }),
+  ]
 };
 
 const prodConfig = {
-  devtool: 'eval-source-map',
+  devtool: 'source-map',
   module: {
     rules: [
       {
@@ -151,24 +200,7 @@ const prodConfig = {
         ]
       },
 
-      {
-        test: /\.(gif|png|jpe?g|svg)$/i,
-        loaders: [
-          'file-loader',
-          {
-            loader: 'image-webpack-loader',
-            query: {
-              progressive: true,
-              optimizationLevel: 7,
-              interlaced: false,
-              pngquant: {
-                quality: '65-90',
-                speed: 4
-              }
-            }
-          }
-        ]
-      }
+
     ],
   },
 
@@ -203,7 +235,9 @@ const prodConfig = {
     }),
 
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': '"production"'
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
     }),
 
     new webpack.optimize.AggressiveMergingPlugin()
